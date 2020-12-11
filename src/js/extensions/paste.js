@@ -11,7 +11,7 @@
         };
 
     /*jslint regexp: true*/
-    /*
+    /**
         jslint does not allow character negation, because the negation
         will not match any unicode characters. In the regexes in this
         block, negation is used specifically to match the end of an html
@@ -37,13 +37,13 @@
             [new RegExp(/<br class="Apple-interchange-newline">/g), '<br>'],
 
             // replace google docs italics+bold with a span to be replaced once the html is inserted
-            [new RegExp(/<span[^>]*(font-style:italic;font-weight:bold|font-weight:bold;font-style:italic)[^>]*>/gi), '<span class="replace-with italic bold">'],
+            [new RegExp(/<span[^>]*(font-style:italic;font-weight:(bold|700)|font-weight:(bold|700);font-style:italic)[^>]*>/gi), '<span class="replace-with italic bold">'],
 
             // replace google docs italics with a span to be replaced once the html is inserted
             [new RegExp(/<span[^>]*font-style:italic[^>]*>/gi), '<span class="replace-with italic">'],
 
             //[replace google docs bolds with a span to be replaced once the html is inserted
-            [new RegExp(/<span[^>]*font-weight:bold[^>]*>/gi), '<span class="replace-with bold">'],
+            [new RegExp(/<span[^>]*font-weight:(bold|700)[^>]*>/gi), '<span class="replace-with bold">'],
 
              // replace manually entered b/i/a tags with real ones
             [new RegExp(/&lt;(\/?)(i|b|a)&gt;/gi), '<$1$2>'],
@@ -139,6 +139,13 @@
          */
         cleanTags: ['meta'],
 
+        /* unwrapTags: [Array]
+         * list of element tag names to unwrap (remove the element tag but retain its child elements)
+         * during paste when __cleanPastedHTML__ is `true` or when
+         * calling `cleanPaste(text)` or `pasteHTML(html, options)` helper methods.
+         */
+        unwrapTags: [],
+
         init: function () {
             MediumEditor.Extension.prototype.init.apply(this, arguments);
 
@@ -196,6 +203,10 @@
 
             if (this.cleanPastedHTML && pastedHTML) {
                 return this.cleanPaste(pastedHTML);
+            }
+
+            if (!pastedPlain) {
+                return;
             }
 
             if (!(this.getEditorOption('disableReturn') || (editable && editable.getAttribute('data-disable-return')))) {
@@ -290,8 +301,10 @@
                 // on empty line, rects is empty so we grab information from the first container of the range
                 if (rects.length) {
                     top += rects[0].top;
-                } else {
+                } else if (range.startContainer.getBoundingClientRect !== undefined) {
                     top += range.startContainer.getBoundingClientRect().top;
+                } else {
+                    top += range.getBoundingClientRect().top;
                 }
             }
 
@@ -422,7 +435,8 @@
         pasteHTML: function (html, options) {
             options = MediumEditor.util.defaults({}, options, {
                 cleanAttrs: this.cleanAttrs,
-                cleanTags: this.cleanTags
+                cleanTags: this.cleanTags,
+                unwrapTags: this.unwrapTags
             });
 
             var elList, workEl, i, fragmentBody, pasteBlock = this.document.createDocumentFragment();
@@ -444,6 +458,7 @@
 
                 MediumEditor.util.cleanupAttrs(workEl, options.cleanAttrs);
                 MediumEditor.util.cleanupTags(workEl, options.cleanTags);
+                MediumEditor.util.unwrapTags(workEl, options.unwrapTags);
             }
 
             MediumEditor.util.insertHTMLCommand(this.document, fragmentBody.innerHTML.replace(/&nbsp;/g, ' '));

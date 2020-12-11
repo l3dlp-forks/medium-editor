@@ -1,3 +1,76 @@
+5.23.3 / 2017-12-20
+==================
+* Fix medium-editor-insert plugin css fixes on beagle theme #1361
+* Update jsDelivr links #1366 & #1367
+* Fix Firefox console warning causing issues #1370
+* Do not check only for null targets or it will fail when it's undefined. #1373
+* Fix crash when 'extensions' in 'isElementDescendantOfExtension' is undefined #1362
+* Fix Jasmine Unit Test errors #1385
+* Fix null error on pastedPlain.split #1397
+* Fix broken browser tests #1396
+
+
+5.23.2 / 2017-08-02
+==================
+* Add noopener & noreferrer into targetBlank #1355
+* Add undefined check and fallback in Paste extension #1346
+
+
+5.23.1 / 2017-06-27
+==================
+* Remove src from bower ignored files #1330
+* Add label-checkbox relation in CreateLink form #1275 #1340
+
+
+5.23.0 / 2017-03-02
+==================
+* Only add schemes to URLs with hostnames #1258
+* Fix problem with addClassToAnchors #1293
+* Adding new 'html' button from #1235 #1291
+* Don't encode fragment as part of linkValidation #1257
+
+
+5.22.2 / 2017-01-19
+==================
+* Efficiency: Compile RegEx once #1230
+* Error in console at link selection #1249
+* Check for this.anchorPreview when hiding #1280
+* Save some CPU calculations #1271
+
+
+5.22.1 / 2016-09-29
+==================
+* Fix encoded urls (in linkValidaton) #1219
+* Fix CommonJS environment #1221
+
+
+5.22.0 / 2016-09-03
+==================
+* Add new extensions to extensions README #1188
+* Fix iframe div #1179
+* Fix placeholder text color in flat theme #1192
+* Add unwrapTags option to paste extension #1177
+* Remove first empty paragraph on backspace #1187
+* Update grunt-contrib-jasmine #1185
+* Added Embed Button links to README #1183
+
+
+5.21.1 / 2016-08-11
+==================
+* Make linkValidation allow hash links #1143
+* Fix toolbar in absolute container #1152
+* Fix caret issue in blockquote #1162
+* Handle new Google Docs font weights #1168
+* Add external button example #1175
+
+
+5.21.0 / 2016-06-21
+==================
+* Fix issue with electron environment #1125
+* Fix for paste and placeholder extensions & add/remove element events #1124
+* Placeholder is visible when only empty table is in Editor #1128
+
+
 5.20.2 / 2016-06-17
 ==================
 (5.20.1 was skipped because of a bad release)

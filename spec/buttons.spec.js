@@ -431,6 +431,9 @@ describe('Buttons TestCase', function () {
             expect(button.classList.contains('medium-editor-button-active')).toBe(true);
 
             fireEvent(button, 'click');
+
+            this.el.innerHTML = stripAttrIfEmpty(this.el, 'style');
+
             // style="font-weight: bold" prevents IE9+10 from doing anything when 'bold' is triggered
             // but it should work in other browsers
             expect(!isOldIE() && button.classList.contains('medium-editor-button-active')).toBe(false);
@@ -507,6 +510,9 @@ describe('Buttons TestCase', function () {
             expect(button.classList.contains('medium-editor-button-active')).toBe(true);
 
             fireEvent(button, 'click');
+
+            this.el.innerHTML = stripAttrIfEmpty(this.el, 'style');
+
             // style="font-style: italic" prevents IE9+10 from doing anything when 'italic' is triggered
             // but it should work in other browsers
             expect(!isOldIE() && button.classList.contains('medium-editor-button-active')).toBe(false);
@@ -566,6 +572,9 @@ describe('Buttons TestCase', function () {
             expect(button.classList.contains('medium-editor-button-active')).toBe(true);
 
             fireEvent(button, 'click');
+
+            this.el.innerHTML = stripAttrIfEmpty(this.el, 'style');
+
             // style="text-decoration: underline" prevents IE9+10 from doing anything when 'underline' is triggered
             // but it should work in other browsers
             expect(!isOldIE() && button.classList.contains('medium-editor-button-active')).toBe(false);
@@ -582,7 +591,7 @@ describe('Buttons TestCase', function () {
                 }),
                 toolbar = editor.getExtensionByName('toolbar'),
                 button = toolbar.getToolbarElement().querySelector('[data-action="strikethrough"]');
-            this.el.innerHTML = '<strike>lorem ipsum</strike>';
+            this.el.innerHTML = '<s>lorem ipsum</s>';
 
             selectElementContentsAndFire(editor.elements[0]);
             expect(button.classList.contains('medium-editor-button-active')).toBe(true);
@@ -602,7 +611,7 @@ describe('Buttons TestCase', function () {
                 button = toolbar.getToolbarElement().querySelector('[data-action="strikethrough"]');
 
             spyOn(document, 'queryCommandState').and.throwError('DOM ERROR');
-            this.el.innerHTML = '<strike><b><i>lorem ipsum</i></b></strike>';
+            this.el.innerHTML = '<s><b><i>lorem ipsum</i></b></s>';
 
             selectElementContentsAndFire(editor.elements[0].querySelector('i'));
             expect(button.classList.contains('medium-editor-button-active')).toBe(true);
@@ -625,6 +634,9 @@ describe('Buttons TestCase', function () {
             expect(button.classList.contains('medium-editor-button-active')).toBe(true);
 
             fireEvent(button, 'click');
+
+            this.el.innerHTML = stripAttrIfEmpty(this.el, 'style');
+
             // style="text-decoration: line-through" prevents IE9+10 from doing anything when 'strikethrough' is triggered
             // but it should work in other browsers
             expect(!isOldIE() && button.classList.contains('medium-editor-button-active')).toBe(false);
@@ -741,6 +753,26 @@ describe('Buttons TestCase', function () {
 
             expect(this.el.innerHTML).toContain('<img src="http://i.imgur.com/twlXfUq.jpg">');
             expect(document.execCommand).toHaveBeenCalledWith('insertImage', false, 'http://i.imgur.com/twlXfUq.jpg');
+        });
+    });
+
+    describe('Html', function () {
+        it('should create an evaluated html tag', function () {
+            var editor = this.newMediumEditor('.editor', {
+                    toolbar: {
+                        buttons: ['html']
+                    }
+                }),
+                toolbar = editor.getExtensionByName('toolbar'),
+                button = toolbar.getToolbarElement().querySelector('[data-action="html"]');
+            spyOn(document, 'execCommand').and.callThrough();
+            this.el.innerHTML = '<span id="span-html">&lt;iframe width="854" height="480" src="https://www.youtube.com/embed/QHH3iSeDBLo" frameborder="0" allowfullscreen&gt;&lt;/iframe&gt;  \n\n</span>';
+
+            selectElementContentsAndFire(document.getElementById('span-html'));
+
+            fireEvent(button, 'click');
+
+            expect(this.el.innerHTML).toMatch(/<iframe(?: width="854"| height="480"| src="https:\/\/www.youtube.com\/embed\/QHH3iSeDBLo"| frameborder="0"| allowfullscreen=""){5}>(<br>)?<\/iframe>/gi);
         });
     });
 
@@ -1036,3 +1068,14 @@ describe('Buttons TestCase', function () {
         });
     });
 });
+
+function stripAttrIfEmpty(element, attribute) {
+    // we want to strip empty attributes (especially styles,
+    // because the tests create style tags, inject style content,
+    // and then remove that style content.
+    //
+    // some browsers will remove empty attributes automatically.
+    //
+    // others (Chrome, seemingly) will not:
+    return element.innerHTML.replace(attribute + '=""', '');
+}

@@ -203,6 +203,7 @@ describe('Anchor Button TestCase', function () {
             });
             expect(editor.elements[0].querySelector('a')).toBeNull();
         });
+
         it('should add http:// if need be and linkValidation option is set to true', function () {
             var editor = this.newMediumEditor('.editor', {
                 anchor: {
@@ -220,6 +221,7 @@ describe('Anchor Button TestCase', function () {
             expect(link).not.toBeNull();
             expect(link.href).toBe('http://test.com/');
         });
+
         it('should add tel: if need be and linkValidation option is set to true', function () {
             var editor = this.newMediumEditor('.editor', {
                 anchor: {
@@ -237,6 +239,7 @@ describe('Anchor Button TestCase', function () {
             expect(link).not.toBeNull();
             expect(link.href).toBe('tel:347-999-9999');
         });
+
         it('should not change protocol when a valid one is included', function () {
             var editor = this.newMediumEditor('.editor', {
                 anchor: {
@@ -255,6 +258,7 @@ describe('Anchor Button TestCase', function () {
             expect(link).not.toBeNull();
             expect(link.href).toBe(validUrl);
         });
+
         it('should not change protocol when a tel scheme is included', function () {
             var editor = this.newMediumEditor('.editor', {
                 anchor: {
@@ -274,6 +278,7 @@ describe('Anchor Button TestCase', function () {
             expect(link).not.toBeNull();
             expect(link.href).toBe(validUrl);
         });
+
         it('should not change protocol when a maps scheme is included', function () {
             var editor = this.newMediumEditor('.editor', {
                 anchor: {
@@ -293,6 +298,7 @@ describe('Anchor Button TestCase', function () {
             expect(link).not.toBeNull();
             expect(link.href).toBe(validUrl);
         });
+
         it('should not change protocol for protocol-relative URLs', function () {
             var editor = this.newMediumEditor('.editor', {
                 anchor: {
@@ -311,6 +317,7 @@ describe('Anchor Button TestCase', function () {
             expect(link).not.toBeNull();
             expect(link.href).toBe(window.location.protocol + validUrl);
         });
+
         it('should not change protocol for any alphabetic scheme', function () {
             var editor = this.newMediumEditor('.editor', {
                 anchor: {
@@ -329,12 +336,89 @@ describe('Anchor Button TestCase', function () {
             expect(link).not.toBeNull();
             expect(link.href).toBe(validUrl.toLowerCase());
         });
-        it('should change spaces to %20 for a valid url if linkValidation options is set to true', function () {
+
+        it('should not change fragment identifier when link begins with hash', function () {
             var editor = this.newMediumEditor('.editor', {
-                anchor: {
-                    linkValidation: true
-                }
-            }),
+                    anchor: {
+                        linkValidation: true
+                    }
+                }),
+                validHashLink = '#!$&\'()*+,;=123abcDEF-._~:@/?',
+                link,
+                anchorExtension = editor.getExtensionByName('anchor');
+
+            selectElementContentsAndFire(editor.elements[0]);
+            anchorExtension.showForm(validHashLink);
+            fireEvent(anchorExtension.getForm().querySelector('a.medium-editor-toolbar-save'), 'click');
+
+            link = editor.elements[0].querySelector('a');
+            expect(link).not.toBeNull();
+            expect(link.getAttribute('href')).toBe(validHashLink);
+        });
+
+        it('should not add a scheme to an absolute path', function () {
+            var editor = this.newMediumEditor('.editor', {
+                    anchor: {
+                        linkValidation: true
+                    }
+                }),
+                absolutePath = '/test',
+                link,
+                anchorExtension = editor.getExtensionByName('anchor');
+
+            selectElementContentsAndFire(editor.elements[0]);
+            anchorExtension.showForm(absolutePath);
+            fireEvent(anchorExtension.getForm().querySelector('a.medium-editor-toolbar-save'), 'click');
+
+            link = editor.elements[0].querySelector('a');
+            expect(link).not.toBeNull();
+            expect(link.getAttribute('href')).toBe(absolutePath);
+        });
+
+        it('should not add a scheme to an obviously relative path', function () {
+            var editor = this.newMediumEditor('.editor', {
+                    anchor: {
+                        linkValidation: true
+                    }
+                }),
+                relativePath = 'test/file.html',
+                link,
+                anchorExtension = editor.getExtensionByName('anchor');
+
+            selectElementContentsAndFire(editor.elements[0]);
+            anchorExtension.showForm(relativePath);
+            fireEvent(anchorExtension.getForm().querySelector('a.medium-editor-toolbar-save'), 'click');
+
+            link = editor.elements[0].querySelector('a');
+            expect(link).not.toBeNull();
+            expect(link.getAttribute('href')).toBe(relativePath);
+        });
+
+        it('should add a scheme to a localhost url', function () {
+            var editor = this.newMediumEditor('.editor', {
+                    anchor: {
+                        linkValidation: true
+                    }
+                }),
+                localhostUrl = 'http://localhost',
+                link,
+                anchorExtension = editor.getExtensionByName('anchor');
+
+            selectElementContentsAndFire(editor.elements[0]);
+            anchorExtension.showForm('localhost');
+            fireEvent(anchorExtension.getForm().querySelector('a.medium-editor-toolbar-save'), 'click');
+
+            link = editor.elements[0].querySelector('a');
+            expect(link).not.toBeNull();
+            expect(link.getAttribute('href')).toBe(localhostUrl);
+        });
+
+        it('should change spaces to %20 for a valid url if linkValidation option is set to true', function () {
+            var editor = this.newMediumEditor('.editor', {
+                    anchor: {
+                        linkValidation: true
+                    }
+                }),
                 link,
                 anchorExtension = editor.getExtensionByName('anchor'),
                 expectedOpts = {
@@ -354,6 +438,110 @@ describe('Anchor Button TestCase', function () {
             expect(link).not.toBeNull();
             expect(link.href).toBe(expectedOpts.value);
         });
+
+        it('should not change # to %23 for a valid url if linkValidation option is set to true', function () {
+            var editor = this.newMediumEditor('.editor', {
+                    anchor: {
+                        linkValidation: true
+                    }
+                }),
+                link,
+                anchorExtension = editor.getExtensionByName('anchor'),
+                expectedOpts = {
+                    value: 'http://example.com/?query=value#anchor',
+                    target: '_self'
+                };
+
+            spyOn(editor, 'execAction').and.callThrough();
+
+            selectElementContentsAndFire(editor.elements[0]);
+            anchorExtension.showForm(expectedOpts.value);
+            fireEvent(anchorExtension.getForm().querySelector('a.medium-editor-toolbar-save'), 'click');
+
+            expect(editor.execAction).toHaveBeenCalledWith('createLink', expectedOpts);
+
+            link = editor.elements[0].querySelector('a');
+            expect(link).not.toBeNull();
+            expect(link.href).toBe(expectedOpts.value);
+        });
+
+        it('should not encode an encoded URL if linkValidation option is set to true', function () {
+            var editor = this.newMediumEditor('.editor', {
+                    anchor: {
+                        linkValidation: true
+                    }
+                }),
+                link,
+                anchorExtension = editor.getExtensionByName('anchor'),
+                expectedOpts = {
+                    value: 'http://a%20b.com/',
+                    target: '_self'
+                };
+
+            spyOn(editor, 'execAction').and.callThrough();
+            selectElementContentsAndFire(editor.elements[0]);
+            anchorExtension.showForm('a%20b.com/');
+            fireEvent(anchorExtension.getForm().querySelector('a.medium-editor-toolbar-save'), 'click');
+
+            expect(editor.execAction).toHaveBeenCalledWith('createLink', expectedOpts);
+
+            link = editor.elements[0].querySelector('a');
+            expect(link).not.toBeNull();
+            expect(link.href).toBe(expectedOpts.value);
+        });
+
+        it('should encode query params if linkValidation option is set to true', function () {
+            var editor = this.newMediumEditor('.editor', {
+                    anchor: {
+                        linkValidation: true
+                    }
+                }),
+                link,
+                anchorExtension = editor.getExtensionByName('anchor'),
+                expectedOpts = {
+                    value: 'http://a.com/?q=http%3A%2F%2Fb.com&q2=http%3A%2F%2Fc.com',
+                    target: '_self'
+                };
+
+            spyOn(editor, 'execAction').and.callThrough();
+
+            selectElementContentsAndFire(editor.elements[0]);
+            anchorExtension.showForm('a.com/?q=http://b.com&q2=http://c.com');
+            fireEvent(anchorExtension.getForm().querySelector('a.medium-editor-toolbar-save'), 'click');
+
+            expect(editor.execAction).toHaveBeenCalledWith('createLink', expectedOpts);
+
+            link = editor.elements[0].querySelector('a');
+            expect(link).not.toBeNull();
+            expect(link.href).toBe(expectedOpts.value);
+        });
+
+        it('should not encode an encoded query param if linkValidation option is set to true', function () {
+            var editor = this.newMediumEditor('.editor', {
+                    anchor: {
+                        linkValidation: true
+                    }
+                }),
+                link,
+                anchorExtension = editor.getExtensionByName('anchor'),
+                expectedOpts = {
+                    value: 'http://a.com/?q=http%3A%2F%2Fb.com&q2=http%3A%2F%2Fc.com',
+                    target: '_self'
+                };
+
+            spyOn(editor, 'execAction').and.callThrough();
+
+            selectElementContentsAndFire(editor.elements[0]);
+            anchorExtension.showForm('a.com/?q=http%3A%2F%2Fb.com&q2=http://c.com');
+            fireEvent(anchorExtension.getForm().querySelector('a.medium-editor-toolbar-save'), 'click');
+
+            expect(editor.execAction).toHaveBeenCalledWith('createLink', expectedOpts);
+
+            link = editor.elements[0].querySelector('a');
+            expect(link).not.toBeNull();
+            expect(link.href).toBe(expectedOpts.value);
+        });
+
         it('should not change spaces to %20 if linkValidation is set to false', function () {
             var editor = this.newMediumEditor('.editor', {
                 anchor: {
@@ -381,6 +569,7 @@ describe('Anchor Button TestCase', function () {
             link = editor.elements[0].querySelector('a');
             expect(link).not.toBeNull();
         });
+
         it('should add target="_blank" when "open in a new window" checkbox is checked', function () {
             var editor = this.newMediumEditor('.editor', {
                 anchor: {
@@ -403,7 +592,9 @@ describe('Anchor Button TestCase', function () {
             link = editor.elements[0].querySelector('a');
             expect(link).not.toBeNull();
             expect(link.target).toBe('_blank');
+            expect(link.rel).toBe('noopener noreferrer');
         });
+
         it('should add target="_blank" when respective option is set to true', function () {
             var editor = this.newMediumEditor('.editor', {
                 targetBlank: true
@@ -418,7 +609,9 @@ describe('Anchor Button TestCase', function () {
             link = editor.elements[0].querySelector('a');
             expect(link).not.toBeNull();
             expect(link.target).toBe('_blank');
+            expect(link.rel).toBe('noopener noreferrer');
         });
+
         it('should create a button when user selects this option and presses enter', function () {
             spyOn(MediumEditor.prototype, 'createLink').and.callThrough();
             var editor = this.newMediumEditor('.editor', {
@@ -461,13 +654,59 @@ describe('Anchor Button TestCase', function () {
             expect(link.classList.contains('btn-default')).toBe(true);
         });
 
+        it('should create a button when user selects this option, even if selected text carries tags ' +
+                'and the selection doesn\'t exactly match those tags', function () {
+            spyOn(MediumEditor.prototype, 'createLink').and.callThrough();
+            this.el.innerHTML = '<p>Hello <b>world</b>&nbsp;!</p>';
+
+            var editor = this.newMediumEditor('.editor', {
+                    anchor: {
+                        customClassOption: 'btn btn-default'
+                    }
+                }),
+                p = this.el.querySelector('p'),
+                b = p.childNodes[1],
+                emptySpacePart = p.childNodes[2],
+                save,
+                input,
+                button,
+                link,
+                opts,
+                anchorExtension = editor.getExtensionByName('anchor'),
+                toolbar = editor.getExtensionByName('toolbar');
+
+            MediumEditor.selection.select(document, b, 0, emptySpacePart, 1); //select world including space
+            save = toolbar.getToolbarElement().querySelector('[data-action="createLink"]');
+
+            input = anchorExtension.getInput();
+            input.value = 'http://test.com';
+
+            button = anchorExtension.getForm().querySelector('input.medium-editor-toolbar-anchor-button');
+            button.setAttribute('type', 'checkbox');
+            button.checked = true;
+
+            fireEvent(anchorExtension.getForm().querySelector('a.medium-editor-toolbar-save'), 'click');
+
+            opts = {
+                value: 'http://test.com',
+                target: '_self',
+                buttonClass: 'btn btn-default'
+            };
+            expect(editor.createLink).toHaveBeenCalledWith(opts);
+
+            link = editor.elements[0].querySelector('a');
+            expect(link).not.toBeNull('Link does not exist');
+            expect(link.classList.contains('btn')).toBe(true, 'Link does not contain class btn');
+            expect(link.classList.contains('btn-default')).toBe(true, 'Link does not contain class btn-default');
+        });
+
         it('should remove the target _blank from the anchor tag when the open in a new window checkbox,' +
                 ' is unchecked and the form is saved', function () {
             var editor = this.newMediumEditor('.editor', {
-                anchor: {
-                    targetCheckbox: true
-                }
-            }),
+                    anchor: {
+                        targetCheckbox: true
+                    }
+                }),
                 anchorExtension = editor.getExtensionByName('anchor'),
                 targetCheckbox,
                 link;
@@ -480,6 +719,7 @@ describe('Anchor Button TestCase', function () {
             fireEvent(anchorExtension.getForm().querySelector('a.medium-editor-toolbar-save'), 'click');
             link = editor.elements[0].querySelector('a');
             expect(link.target).toBe('_blank');
+            expect(link.rel).toBe('noopener noreferrer');
 
             selectElementContentsAndFire(editor.elements[0]);
             anchorExtension.showForm('http://test.com');
